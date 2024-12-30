@@ -104,72 +104,99 @@ gsap.registerPlugin(ScrollTrigger);
 
 
 
+document.addEventListener("DOMContentLoaded", () => {
+  const lines = document.querySelector(".lines");
+  const navMenu = document.querySelector(".navmenu");
+  const navLinks = document.querySelectorAll(".navlink");
+  const html = document.querySelector("html");
 
-const lines = document.querySelector(".lines");
-const navMenu = document.querySelector(".navmenu");
-const navLinks = document.querySelectorAll(".navlink");
-const html = document.querySelector("html");
-
-function isMobileMenu() {
-  return window.innerWidth <= 850;
-}
-
-if (isMobileMenu()) {
-  gsap.set(navMenu, { x: "100%" });
-  gsap.set(navLinks, { opacity: 0, y: 50 });
-}
-
-const menuTimeline = gsap.timeline({ paused: true, reversed: true });
-
-menuTimeline
-  .to(navMenu, {
-    x: "0%",
-    duration: 0.8,
-    ease: "power4.out",
-  })
-  .to(
-    {},
-    { duration: 0.3 }
-  )
-  .to(
-    navLinks,
-    {
-      opacity: 1,
-      y: 0,
-      duration: 0.5,
-      stagger: 0.1,
-      ease: "power3.out",
-    },
-    "-=0.3"
-  );
-
-lines.addEventListener("click", () => {
-  if (!isMobileMenu()) return;
-  if (menuTimeline.isActive()) return;
-
-  if (menuTimeline.reversed()) {
-    menuTimeline.play();
-    html.classList.add("menu-open");
-  } else {
-    menuTimeline.reverse();
-    html.classList.remove("menu-open");
+  function isMobileMenu() {
+    return window.innerWidth <= 850;
   }
-});
 
-window.addEventListener("resize", () => {
-  if (!isMobileMenu()) {
-    gsap.set(navMenu, { clearProps: "all" });
-    gsap.set(navLinks, { clearProps: "all" });
-    html.classList.remove("menu-open");
-  } else {
-    gsap.set(navMenu, { x: menuTimeline.reversed() ? "100%" : "0%" });
-    gsap.set(navLinks, {
-      opacity: menuTimeline.reversed() ? 0 : 1,
-      y: menuTimeline.reversed() ? 50 : 0,
+  // Initialisierung des Hamburger-Menüs für mobile Geräte
+  if (isMobileMenu()) {
+    gsap.set(navMenu, { x: "100%" });
+    gsap.set(navLinks, { opacity: 0, y: 50 });
+  }
+
+  const menuTimeline = gsap.timeline({ paused: true, reversed: true });
+
+  menuTimeline
+    .to(navMenu, {
+      x: "0%",
+      duration: 0.8,
+      ease: "power4.out",
+    })
+    .to({}, { duration: 0.3 }) // Leere Animation als Platzhalter
+    .to(
+      navLinks,
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power3.out",
+      },
+      "-=0.3"
+    );
+
+  // Öffnen/Schließen des Menüs bei Klick auf die Hamburger-Lines
+  lines.addEventListener("click", () => {
+    if (!isMobileMenu()) return;
+    if (menuTimeline.isActive()) return;
+
+    if (menuTimeline.reversed()) {
+      menuTimeline.play();
+      html.classList.add("menu-open");
+    } else {
+      menuTimeline.reverse();
+      html.classList.remove("menu-open");
+    }
+  });
+
+  // Smooth-Scroll und Menü schließen bei Klick auf einen Menüpunkt
+  navLinks.forEach(link => {
+    link.addEventListener("click", event => {
+      const targetId = link.getAttribute("href");
+
+      // Smooth-Scroll mit GSAP
+      if (targetId.startsWith("#")) {
+        event.preventDefault();
+        const targetElement = document.querySelector(targetId);
+
+        if (targetElement) {
+          gsap.to(window, {
+            scrollTo: { y: targetElement, offsetY: 70 }, // Offset für Header
+            duration: 1,
+            ease: "power2.out",
+          });
+        }
+      }
+
+      // Schließen des Menüs, wenn ein Link geklickt wird (nur mobil)
+      if (isMobileMenu()) {
+        menuTimeline.reverse();
+        html.classList.remove("menu-open");
+      }
     });
-  }
-});
+  });
 
+  // Menü zurücksetzen, wenn die Fenstergröße geändert wird
+  window.addEventListener("resize", () => {
+    if (!isMobileMenu()) {
+      gsap.set(navMenu, { clearProps: "all" });
+      gsap.set(navLinks, { clearProps: "all" });
+      html.classList.remove("menu-open");
+    } else {
+      gsap.set(navMenu, { x: menuTimeline.reversed() ? "100%" : "0%" });
+      gsap.set(navLinks, {
+        opacity: menuTimeline.reversed() ? 0 : 1,
+        y: menuTimeline.reversed() ? 50 : 0,
+      });
+    }
+  });
+});
 
 
 
